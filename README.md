@@ -11,11 +11,11 @@ go run main.go
 ## Build
 
 ```bash
-go build ./...
+go build
 ```
 
 ## Test
 
 ```bash
-go test ./...
+go test
 ```
