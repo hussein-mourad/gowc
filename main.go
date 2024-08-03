@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 )
@@ -16,9 +17,32 @@ func getBytesCount(filename string) int {
 	return len(data)
 }
 
+func getLinesCount(filename string) int {
+	file, err := os.Open(filename)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		file.Close()
+		os.Exit(1)
+	}
+	defer file.Close()
+	lines := 0
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines++
+	}
+	return lines
+}
+
 func main() {
 	args := os.Args[1:]
-	// flag := args[0]
+	flag := args[0]
 	filename := args[1]
-	fmt.Println(getBytesCount(filename), filename)
+	switch flag {
+	case "-c":
+		fmt.Println(getBytesCount(filename), filename)
+	case "-l":
+		fmt.Println(getLinesCount(filename), filename)
+	default:
+		fmt.Println(getLinesCount(filename), getBytesCount(filename), filename)
+	}
 }
