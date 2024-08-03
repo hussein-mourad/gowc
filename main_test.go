@@ -18,3 +18,17 @@ func TestNumberOfBytes(t *testing.T) {
 		t.Errorf("Expected %s but got %s", expectedOutput, string(output))
 	}
 }
+
+func TestNumberOfLines(t *testing.T) {
+	cmd := exec.Command("go", "run", "main.go", "-l", "test.txt")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedOutput := "7145 test.txt\n"
+
+	if string(output) != expectedOutput {
+		t.Errorf("Expected %s but got %s", expectedOutput, string(output))
+	}
+}
