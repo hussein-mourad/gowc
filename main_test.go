@@ -30,8 +30,8 @@ func TestNumberOfBytes(t *testing.T) {
 	expectedOutputs := []string{
 		"5 test_data/test1.txt\n",
 		"12 test_data/test2.txt\n",
-		"335045 test_data/test3.txt\n",
-		"335062 total\n",
+		"342190 test_data/test3.txt\n",
+		"342207 total\n",
 	}
 	runFileTest(t, args, expectedOutputs)
 }
@@ -61,7 +61,7 @@ func TestNumberOfWords(t *testing.T) {
 func TestNumberOfCharacters(t *testing.T) {
 	args := []string{"-m", "test_data/test3.txt"}
 	expectedOutputs := []string{
-		"332147 test_data/test3.txt\n",
+		"339292 test_data/test3.txt\n",
 	}
 	runFileTest(t, args, expectedOutputs)
 }
@@ -71,8 +71,8 @@ func TestDefault(t *testing.T) {
 	expectedOutputs := []string{
 		"     1      1      5 test_data/test1.txt\n",
 		"     2      2     12 test_data/test2.txt\n",
-		"  7145  58164 335045 test_data/test3.txt\n",
-		"  7148  58167 335062 total\n",
+		"  7145  58164 342190 test_data/test3.txt\n",
+		"  7148  58167 342207 total\n",
 	}
 	runFileTest(t, args, expectedOutputs)
 }
