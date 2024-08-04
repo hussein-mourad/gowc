@@ -68,7 +68,7 @@ func TestDefault(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expectedOutput := "7145  58164 342190 test.txt\n"
+	expectedOutput := "7145 58164 342190 test.txt\n"
 
 	if string(output) != expectedOutput {
 		t.Errorf("Expected %s but got %s", expectedOutput, string(output))
