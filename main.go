@@ -131,28 +131,42 @@ func calculateStats(reader io.Reader, filePath *string) {
 	outputData = append(outputData, data)
 }
 
-// func getMaxWdith()
+func getMaxWdith() int {
+	maxWidth := 0
+	if args.flags["l"] {
+		maxWidth = max(maxWidth, maxLinesWidth)
+	}
+	if args.flags["w"] {
+		maxWidth = max(maxWidth, maxWordsWidth)
+	}
+	if args.flags["m"] {
+		maxWidth = max(maxWidth, maxCharsWidth)
+	}
+	if args.flags["c"] {
+		maxWidth = max(maxWidth, maxBytesWidth)
+	}
+	if flag.NFlag() == 0 {
+		maxWidth = max(maxLinesWidth, maxWordsWidth, maxBytesWidth)
+	}
+	return maxWidth
+}
 
 func printOutput(outputData []OutputData) {
-	width := max(maxLinesWidth, maxWordsWidth, maxCharsWidth, maxBytesWidth)
+	width := getMaxWdith()
 
 	for _, data := range outputData {
 		output := make([]string, 0)
 
 		if args.flags["l"] {
-			// width = maxLinesWidth
 			output = append(output, fmt.Sprintf("%*d", width, data.lines))
 		}
 		if args.flags["w"] {
-			// width = maxWordsWidth
 			output = append(output, fmt.Sprintf("%*d", width, data.words))
 		}
 		if args.flags["m"] {
-			// width = maxCharsWidth
 			output = append(output, fmt.Sprintf("%*d", width, data.characters))
 		}
 		if args.flags["c"] {
-			// width = maxBytesWidth
 			output = append(output, fmt.Sprintf("%*d", width, data.bytes))
 		}
 		if flag.NFlag() == 0 {
