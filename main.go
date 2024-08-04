@@ -37,11 +37,16 @@ func main() {
 
 	if len(filesPath) == 0 {
 		filesPath := ""
-		calculateStats(&filesPath, reader)
+		calculateStats(reader, &filesPath)
 		printOutput(args, outputData)
 	} else {
 		for _, filePath := range filesPath {
-			calculateStats(&filePath, reader)
+			reader, err := openFile(filePath)
+			if err != nil {
+				fmt.Printf("%v\n", err)
+				continue
+			}
+			calculateStats(reader, &filePath)
 		}
 
 		if len(filesPath) > 1 {
@@ -69,18 +74,20 @@ func parseFlags() Args {
 	}
 }
 
-func calculateStats(filePath *string, reader io.Reader) {
+func openFile(filePath string) (io.Reader, error) {
+	if filePath == "" {
+		return os.Stdin, nil
+	}
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	return file, nil
+}
+
+func calculateStats(reader io.Reader, filePath *string) {
 	var data OutputData
 	var lineBuffer []byte
-
-	if *filePath != "" {
-		f, err := os.Open(*filePath)
-		if err != nil {
-			fmt.Printf("%v\n", err)
-			os.Exit(1)
-		}
-		reader = f
-	}
 
 	scanner := bufio.NewScanner(reader)
 	scanner.Split(bufio.ScanBytes)
