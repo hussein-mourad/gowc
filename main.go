@@ -12,10 +12,7 @@ import (
 )
 
 type Args struct {
-	printBytes bool
-	printChars bool
-	printWords bool
-	printLines bool
+	flags map[string]bool
 }
 
 type OutputData struct {
@@ -33,14 +30,7 @@ var total OutputData
 var maxLinesWidth, maxWordsWidth, maxCharsWidth, maxBytesWidth int
 
 func main() {
-	printBytes := flag.Bool("c", false, "print the byte counts")
-	printChars := flag.Bool("m", false, "print the character counts")
-	printWords := flag.Bool("w", false, "print the word counts")
-	printLines := flag.Bool("l", false, "print the newline counts")
-
-	flag.Parse()
-
-	args := Args{*printBytes, *printChars, *printWords, *printLines}
+	args := parseFlags()
 
 	filesPath := flag.Args()
 	reader := os.Stdin
@@ -59,6 +49,23 @@ func main() {
 			outputData = append(outputData, totalArgs)
 		}
 		printOutput(args, outputData)
+	}
+}
+
+func parseFlags() Args {
+	printBytes := flag.Bool("c", false, "print the byte counts")
+	printChars := flag.Bool("m", false, "print the character counts")
+	printWords := flag.Bool("w", false, "print the word counts")
+	printLines := flag.Bool("l", false, "print the newline counts")
+	flag.Parse()
+
+	return Args{
+		flags: map[string]bool{
+			"c": *printBytes,
+			"m": *printChars,
+			"w": *printWords,
+			"l": *printLines,
+		},
 	}
 }
 
@@ -123,16 +130,16 @@ func printOutput(args Args, outputData []OutputData) {
 	for _, data := range outputData {
 		output := make([]string, 0)
 
-		if args.printLines {
+		if args.flags["l"] {
 			output = append(output, fmt.Sprintf("%*d", width, data.lines))
 		}
-		if args.printWords {
+		if args.flags["w"] {
 			output = append(output, fmt.Sprintf("%*d", width, data.words))
 		}
-		if args.printChars {
+		if args.flags["m"] {
 			output = append(output, fmt.Sprintf("%*d", width, data.characters))
 		}
-		if args.printBytes {
+		if args.flags["c"] {
 			output = append(output, fmt.Sprintf("%*d", width, data.bytes))
 		}
 		if flag.NFlag() == 0 {
