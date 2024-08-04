@@ -98,8 +98,7 @@ func calculateStats(reader io.Reader, filePath *string) {
 
 		if byte == '\n' {
 			data.lines++
-			lineCharacters := utf8.RuneCount(lineBuffer) + 1 // Add the end of line character
-			data.characters += lineCharacters
+			data.characters += utf8.RuneCount(lineBuffer) + 1 // Add the end of line character
 			data.words += len(strings.Fields(string(lineBuffer)))
 
 			lineBuffer = nil // Reset line buffer for the next line
@@ -110,8 +109,7 @@ func calculateStats(reader io.Reader, filePath *string) {
 
 	// handle the last line if it does not end with a newline
 	if len(lineBuffer) > 0 {
-		lineCharacters := utf8.RuneCount(lineBuffer)
-		data.characters += lineCharacters
+		data.characters += utf8.RuneCount(lineBuffer)
 		data.words += len(strings.Fields(string(lineBuffer)))
 	}
 
