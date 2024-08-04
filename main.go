@@ -11,74 +11,11 @@ import (
 	"unicode/utf8"
 )
 
-var programName = os.Args[0]
-
-func getBytesCount(filename string) int {
-	file, err := os.Open(filename)
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		file.Close()
-		os.Exit(1)
-	}
-	defer file.Close()
-	data, err := io.ReadAll(file)
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		os.Exit(1)
-	}
-	return len(data)
-}
-
-func getCharactersCount(filename string) int {
-	file, err := os.Open(filename)
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		file.Close()
-		os.Exit(1)
-	}
-	defer file.Close()
-	data, err := io.ReadAll(file)
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		os.Exit(1)
-	}
-	content := string(data)
-
-	charCount := utf8.RuneCountInString(content)
-	return charCount
-}
-
-func getLinesCount(filename string) int {
-	file, err := os.Open(filename)
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		file.Close()
-		os.Exit(1)
-	}
-	defer file.Close()
-	lines := 0
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines++
-	}
-	return lines
-}
-
-func getWordsCount(filename string) int {
-	file, err := os.Open(filename)
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		file.Close()
-		os.Exit(1)
-	}
-	defer file.Close()
-	words := 0
-	scanner := bufio.NewScanner(file)
-	scanner.Split(bufio.ScanWords)
-	for scanner.Scan() {
-		words++
-	}
-	return words
+type Args struct {
+	printBytes bool
+	printChars bool
+	printWords bool
+	printLines bool
 }
 
 func main() {
@@ -89,16 +26,29 @@ func main() {
 
 	flag.Parse()
 
-	filename := flag.Arg(0)
+	args := Args{*printBytes, *printChars, *printWords, *printLines}
+
+	filesPath := flag.Args()
 	reader := os.Stdin
 
-	if filename != "" {
-		r, err := os.Open(filename)
+	if len(filesPath) == 0 {
+		filesPath := ""
+		printFileOutput(&filesPath, reader, args)
+	}
+
+	for _, filePath := range filesPath {
+		printFileOutput(&filePath, reader, args)
+	}
+}
+
+func printFileOutput(filePath *string, reader io.Reader, args Args) {
+	if *filePath != "" {
+		f, err := os.Open(*filePath)
 		if err != nil {
 			fmt.Printf("%v\n", err)
 			os.Exit(1)
 		}
-		reader = r
+		reader = f
 	}
 
 	scanner := bufio.NewScanner(reader)
@@ -135,16 +85,16 @@ func main() {
 
 	output := make([]string, 0)
 
-	if *printLines {
+	if args.printLines {
 		output = append(output, strconv.Itoa(lines))
 	}
-	if *printWords {
+	if args.printWords {
 		output = append(output, strconv.Itoa(words))
 	}
-	if *printChars {
+	if args.printChars {
 		output = append(output, strconv.Itoa(characters))
 	}
-	if *printBytes {
+	if args.printBytes {
 		output = append(output, strconv.Itoa(bytes))
 	}
 	if flag.NFlag() == 0 {
@@ -152,8 +102,8 @@ func main() {
 		output = append(output, strconv.Itoa(words))
 		output = append(output, strconv.Itoa(bytes))
 	}
-	if filename != "" {
-		output = append(output, filename)
+	if *filePath != "" {
+		output = append(output, *filePath)
 	}
 	fmt.Println(strings.Join(output, " "))
 }
