@@ -14,7 +14,7 @@ func runFileTest(t *testing.T, args []string, expectedOutputs []string) {
 	cmd := exec.Command("go", cmdArgs...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("Command failed with %v. Output: %s", err, output)
 	}
 
 	outputStr := string(output)
@@ -26,6 +26,7 @@ func runFileTest(t *testing.T, args []string, expectedOutputs []string) {
 }
 
 func TestNumberOfBytes(t *testing.T) {
+	t.Parallel()
 	args := append([]string{"-c"}, files...)
 	expectedOutputs := []string{
 		"5 test_data/test1.txt\n",
@@ -37,6 +38,7 @@ func TestNumberOfBytes(t *testing.T) {
 }
 
 func TestNumberOfLines(t *testing.T) {
+	t.Parallel()
 	args := append([]string{"-l"}, files...)
 	expectedOutputs := []string{
 		"1 test_data/test1.txt\n",
@@ -48,6 +50,7 @@ func TestNumberOfLines(t *testing.T) {
 }
 
 func TestNumberOfWords(t *testing.T) {
+	t.Parallel()
 	args := append([]string{"-w"}, files...)
 	expectedOutputs := []string{
 		"1 test_data/test1.txt\n",
@@ -59,6 +62,7 @@ func TestNumberOfWords(t *testing.T) {
 }
 
 func TestNumberOfCharacters(t *testing.T) {
+	t.Parallel()
 	args := []string{"-m", "test_data/test3.txt"}
 	expectedOutputs := []string{
 		"339292 test_data/test3.txt\n",
@@ -67,6 +71,7 @@ func TestNumberOfCharacters(t *testing.T) {
 }
 
 func TestDefault(t *testing.T) {
+	t.Parallel()
 	args := append([]string{}, files...)
 	expectedOutputs := []string{
 		"     1      1      5 test_data/test1.txt\n",
@@ -78,6 +83,7 @@ func TestDefault(t *testing.T) {
 }
 
 func TestLinesFromStdin(t *testing.T) {
+	t.Parallel()
 	catCmd := exec.Command("cat", "test_data/test3.txt")
 	goCmd := exec.Command("go", "run", "main.go", "-l")
 
