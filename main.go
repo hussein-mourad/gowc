@@ -4,9 +4,11 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 )
 
 var programName = os.Args[0]
@@ -21,8 +23,22 @@ func getBytesCount(filename string) int {
 }
 
 func getCharactersCount(filename string) int {
-	// TODO: Get characters count
-	return getBytesCount(filename)
+	file, err := os.Open(filename)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		file.Close()
+		os.Exit(1)
+	}
+	defer file.Close()
+	data, err := io.ReadAll(file)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		os.Exit(1)
+	}
+	content := string(data)
+
+	charCount := utf8.RuneCountInString(content)
+	return charCount
 }
 
 func getLinesCount(filename string) int {
