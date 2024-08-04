@@ -18,12 +18,14 @@ type Args struct {
 	printLines bool
 }
 
-var (
-	total_lines      = 0
-	total_words      = 0
-	total_characters = 0
-	total_bytes      = 0
-)
+type OutputData struct {
+	lines      int
+	words      int
+	characters int
+	bytes      int
+}
+
+var total OutputData
 
 func main() {
 	printBytes := flag.Bool("c", false, "print the byte counts")
@@ -46,27 +48,8 @@ func main() {
 			calculateStats(&filePath, reader, args)
 		}
 		if len(filesPath) > 0 {
-			output := make([]string, 0)
-
-			if args.printLines {
-				output = append(output, strconv.Itoa(total_lines))
-			}
-			if args.printWords {
-				output = append(output, strconv.Itoa(total_words))
-			}
-			if args.printChars {
-				output = append(output, strconv.Itoa(total_characters))
-			}
-			if args.printBytes {
-				output = append(output, strconv.Itoa(total_bytes))
-			}
-			if flag.NFlag() == 0 {
-				output = append(output, strconv.Itoa(total_lines))
-				output = append(output, strconv.Itoa(total_words))
-				output = append(output, strconv.Itoa(total_bytes))
-			}
-			output = append(output, "total")
-			fmt.Println(strings.Join(output, " "))
+			str := "total"
+			printOutput(&str, args, total)
 		}
 	}
 }
@@ -84,21 +67,19 @@ func calculateStats(filePath *string, reader io.Reader, args Args) {
 	scanner := bufio.NewScanner(reader)
 	scanner.Split(bufio.ScanBytes)
 
-	lines := 0
-	words := 0
-	characters := 0
-	bytes := 0
+	var data OutputData
+
 	var lineBuffer []byte
 
 	for scanner.Scan() {
 		byte := scanner.Bytes()[0]
-		bytes++
+		data.bytes++
 
 		if byte == '\n' {
-			lines++
+			data.lines++
 			lineCharacters := utf8.RuneCount(lineBuffer) + 1 // Add the end of line character
-			characters += lineCharacters
-			words += len(strings.Fields(string(lineBuffer)))
+			data.characters += lineCharacters
+			data.words += len(strings.Fields(string(lineBuffer)))
 
 			lineBuffer = nil // Reset line buffer for the next line
 		} else {
@@ -109,38 +90,40 @@ func calculateStats(filePath *string, reader io.Reader, args Args) {
 	// handle the last line if it does not end with a newline
 	if len(lineBuffer) > 0 {
 		lineCharacters := utf8.RuneCount(lineBuffer)
-		characters += lineCharacters
-		words += len(strings.Fields(string(lineBuffer)))
+		data.characters += lineCharacters
+		data.words += len(strings.Fields(string(lineBuffer)))
 	}
 
-	total_lines += lines
-	total_words += words
-	total_characters += characters
-	total_bytes += bytes
+	total.lines += data.lines
+	total.words += data.words
+	total.characters += data.characters
+	total.bytes += data.bytes
 
+	printOutput(filePath, args, data)
+}
+
+func printOutput(filePath *string, args Args, data OutputData) {
 	output := make([]string, 0)
 
 	if args.printLines {
-		output = append(output, strconv.Itoa(lines))
+		output = append(output, strconv.Itoa(data.lines))
 	}
 	if args.printWords {
-		output = append(output, strconv.Itoa(words))
+		output = append(output, strconv.Itoa(data.words))
 	}
 	if args.printChars {
-		output = append(output, strconv.Itoa(characters))
+		output = append(output, strconv.Itoa(data.characters))
 	}
 	if args.printBytes {
-		output = append(output, strconv.Itoa(bytes))
+		output = append(output, strconv.Itoa(data.bytes))
 	}
 	if flag.NFlag() == 0 {
-		output = append(output, strconv.Itoa(lines))
-		output = append(output, strconv.Itoa(words))
-		output = append(output, strconv.Itoa(bytes))
+		output = append(output, strconv.Itoa(data.lines))
+		output = append(output, strconv.Itoa(data.words))
+		output = append(output, strconv.Itoa(data.bytes))
 	}
 	if *filePath != "" {
 		output = append(output, *filePath)
 	}
 	fmt.Println(strings.Join(output, " "))
 }
-
-// func createOutput(*filePath string, args Args, lines , words, characters, bytes)
