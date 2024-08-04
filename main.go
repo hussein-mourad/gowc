@@ -4,33 +4,80 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
-	"unicode"
 	"unicode/utf8"
 )
 
-// countWords counts the number of words in a string
-func countWords(s string) int {
-	var words int
-	inWord := false
+var programName = os.Args[0]
 
-	for _, r := range s {
-		if unicode.IsSpace(r) {
-			if inWord {
-				words++
-				inWord = false
-			}
-		} else {
-			inWord = true
-		}
+func getBytesCount(filename string) int {
+	file, err := os.Open(filename)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		file.Close()
+		os.Exit(1)
 	}
+	defer file.Close()
+	data, err := io.ReadAll(file)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		os.Exit(1)
+	}
+	return len(data)
+}
 
-	if inWord {
+func getCharactersCount(filename string) int {
+	file, err := os.Open(filename)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		file.Close()
+		os.Exit(1)
+	}
+	defer file.Close()
+	data, err := io.ReadAll(file)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		os.Exit(1)
+	}
+	content := string(data)
+
+	charCount := utf8.RuneCountInString(content)
+	return charCount
+}
+
+func getLinesCount(filename string) int {
+	file, err := os.Open(filename)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		file.Close()
+		os.Exit(1)
+	}
+	defer file.Close()
+	lines := 0
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines++
+	}
+	return lines
+}
+
+func getWordsCount(filename string) int {
+	file, err := os.Open(filename)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		file.Close()
+		os.Exit(1)
+	}
+	defer file.Close()
+	words := 0
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanWords)
+	for scanner.Scan() {
 		words++
 	}
-
 	return words
 }
 
@@ -55,26 +102,60 @@ func main() {
 	}
 
 	scanner := bufio.NewScanner(reader)
+	scanner.Split(bufio.ScanBytes)
 
 	lines := 0
 	words := 0
 	characters := 0
 	bytes := 0
 
+	// for scanner.Scan() {
+	// 	// byte := scanner.Text()
+	// 	// bytes++
+	// 	// if byte == "\n" {
+	// 	// 	lines++
+	// 	// }
+	// 	//
+	// 	line := scanner.Text()
+	// 	lines++
+	//
+	// 	// Count bytes and characters
+	// 	lineBytes := len(line)
+	// 	lineCharacters := utf8.RuneCountInString(line)
+	//
+	// 	bytes += lineBytes
+	// 	characters += lineCharacters
+	//
+	// 	// Count words
+	// 	words += len(strings.Fields(line))
+	// }
+
+	var lineBuffer []byte
 	for scanner.Scan() {
-		line := scanner.Text()
-		lines++
+		byte := scanner.Bytes()[0]
+		bytes++
 
-		// Count bytes and characters
-		lineBytes := len(line) + 1
-		lineCharacters := utf8.RuneCountInString(line) + 1
+		if byte == '\n' {
+			lines++
+			lineCharacters := utf8.RuneCount(lineBuffer) + 1 // Add the end of line character
+			characters += lineCharacters
+			words += len(strings.Fields(string(lineBuffer)))
 
-		bytes += lineBytes
-		characters += lineCharacters
-
-		// Count words
-		words += countWords(line)
+			lineBuffer = nil // Reset line buffer for the next line
+		} else {
+			lineBuffer = append(lineBuffer, byte)
+		}
 	}
+
+	// // Handle the last line if it does not end with a newline
+	// if len(lineBuffer) > 0 {
+	// 	lineBytes := len(lineBuffer)
+	// 	lineCharacters := utf8.RuneCount(lineBuffer)
+	//
+	// 	bytes += lineBytes
+	// 	characters += lineCharacters
+	// 	words += len(strings.Fields(string(lineBuffer)))
+	// }
 
 	output := make([]string, 0)
 
