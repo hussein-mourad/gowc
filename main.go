@@ -18,6 +18,13 @@ type Args struct {
 	printLines bool
 }
 
+var (
+	total_lines      = 0
+	total_words      = 0
+	total_characters = 0
+	total_bytes      = 0
+)
+
 func main() {
 	printBytes := flag.Bool("c", false, "print the byte counts")
 	printChars := flag.Bool("m", false, "print the character counts")
@@ -33,15 +40,38 @@ func main() {
 
 	if len(filesPath) == 0 {
 		filesPath := ""
-		printFileOutput(&filesPath, reader, args)
-	}
+		calculateStats(&filesPath, reader, args)
+	} else {
+		for _, filePath := range filesPath {
+			calculateStats(&filePath, reader, args)
+		}
+		if len(filesPath) > 0 {
+			output := make([]string, 0)
 
-	for _, filePath := range filesPath {
-		printFileOutput(&filePath, reader, args)
+			if args.printLines {
+				output = append(output, strconv.Itoa(total_lines))
+			}
+			if args.printWords {
+				output = append(output, strconv.Itoa(total_words))
+			}
+			if args.printChars {
+				output = append(output, strconv.Itoa(total_characters))
+			}
+			if args.printBytes {
+				output = append(output, strconv.Itoa(total_bytes))
+			}
+			if flag.NFlag() == 0 {
+				output = append(output, strconv.Itoa(total_lines))
+				output = append(output, strconv.Itoa(total_words))
+				output = append(output, strconv.Itoa(total_bytes))
+			}
+			output = append(output, "total")
+			fmt.Println(strings.Join(output, " "))
+		}
 	}
 }
 
-func printFileOutput(filePath *string, reader io.Reader, args Args) {
+func calculateStats(filePath *string, reader io.Reader, args Args) {
 	if *filePath != "" {
 		f, err := os.Open(*filePath)
 		if err != nil {
@@ -83,6 +113,11 @@ func printFileOutput(filePath *string, reader io.Reader, args Args) {
 		words += len(strings.Fields(string(lineBuffer)))
 	}
 
+	total_lines += lines
+	total_words += words
+	total_characters += characters
+	total_bytes += bytes
+
 	output := make([]string, 0)
 
 	if args.printLines {
@@ -107,3 +142,5 @@ func printFileOutput(filePath *string, reader io.Reader, args Args) {
 	}
 	fmt.Println(strings.Join(output, " "))
 }
+
+// func createOutput(*filePath string, args Args, lines , words, characters, bytes)
