@@ -4,73 +4,33 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"io"
 	"os"
 	"strconv"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 )
 
-var programName = os.Args[0]
+// countWords counts the number of words in a string
+func countWords(s string) int {
+	var words int
+	inWord := false
 
-func getBytesCount(filename string) int {
-	data, err := os.ReadFile(filename)
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		os.Exit(1)
+	for _, r := range s {
+		if unicode.IsSpace(r) {
+			if inWord {
+				words++
+				inWord = false
+			}
+		} else {
+			inWord = true
+		}
 	}
-	return len(data)
-}
 
-func getCharactersCount(filename string) int {
-	file, err := os.Open(filename)
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		file.Close()
-		os.Exit(1)
-	}
-	defer file.Close()
-	data, err := io.ReadAll(file)
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		os.Exit(1)
-	}
-	content := string(data)
-
-	charCount := utf8.RuneCountInString(content)
-	return charCount
-}
-
-func getLinesCount(filename string) int {
-	file, err := os.Open(filename)
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		file.Close()
-		os.Exit(1)
-	}
-	defer file.Close()
-	lines := 0
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines++
-	}
-	return lines
-}
-
-func getWordsCount(filename string) int {
-	file, err := os.Open(filename)
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		file.Close()
-		os.Exit(1)
-	}
-	defer file.Close()
-	words := 0
-	scanner := bufio.NewScanner(file)
-	scanner.Split(bufio.ScanWords)
-	for scanner.Scan() {
+	if inWord {
 		words++
 	}
+
 	return words
 }
 
@@ -83,36 +43,66 @@ func main() {
 	flag.Parse()
 
 	filename := flag.Arg(0)
-	if filename == "" {
-		fmt.Println("Filename is not defined")
-		os.Exit(1)
+	reader := os.Stdin
+
+	if filename != "" {
+		r, err := os.Open(filename)
+		if err != nil {
+			fmt.Printf("%v\n", err)
+			os.Exit(1)
+		}
+		reader = r
+	}
+
+	scanner := bufio.NewScanner(reader)
+
+	lines := 0
+	words := 0
+	characters := 0
+	bytes := 0
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		lines++
+
+		// Count bytes and characters
+		lineBytes := len(line) + 1
+		lineCharacters := utf8.RuneCountInString(line) + 1
+
+		bytes += lineBytes
+		characters += lineCharacters
+
+		// Count words
+		words += countWords(line)
 	}
 
 	output := make([]string, 0)
 
 	if *printLines {
-		output = append(output, strconv.Itoa(getLinesCount(filename)))
+		output = append(output, strconv.Itoa(lines))
 	}
 
 	if *printWords {
-		output = append(output, strconv.Itoa(getWordsCount(filename)))
+		output = append(output, strconv.Itoa(words))
 	}
 
 	if *printChars {
-		output = append(output, strconv.Itoa(getCharactersCount(filename)))
+		output = append(output, strconv.Itoa(characters))
 	}
 
 	if *printBytes {
-		output = append(output, strconv.Itoa(getBytesCount(filename)))
+		output = append(output, strconv.Itoa(bytes))
 	}
 
 	if flag.NFlag() == 0 {
-		output = append(output, strconv.Itoa(getLinesCount(filename)))
-		output = append(output, strconv.Itoa(getWordsCount(filename)))
-		output = append(output, strconv.Itoa(getBytesCount(filename)))
+		output = append(output, strconv.Itoa(lines))
+		output = append(output, strconv.Itoa(words))
+		output = append(output, strconv.Itoa(bytes))
 	}
 
-	output = append(output, filename)
+	if filename != "" {
+		output = append(output, filename)
+	}
 
 	fmt.Println(strings.Join(output, " "))
 }
