@@ -27,10 +27,12 @@ var outputData []OutputData
 
 var total OutputData
 
+var args Args
+
 var maxLinesWidth, maxWordsWidth, maxCharsWidth, maxBytesWidth int
 
 func main() {
-	args := parseFlags()
+	args = parseFlags()
 
 	filesPath := flag.Args()
 	reader := os.Stdin
@@ -38,7 +40,7 @@ func main() {
 	if len(filesPath) == 0 {
 		filesPath := ""
 		calculateStats(reader, &filesPath)
-		printOutput(args, outputData)
+		printOutput(outputData)
 	} else {
 		for _, filePath := range filesPath {
 			reader, err := openFile(filePath)
@@ -53,7 +55,7 @@ func main() {
 			totalArgs := OutputData{file: "total", lines: total.lines, words: total.words, characters: total.characters, bytes: total.bytes}
 			outputData = append(outputData, totalArgs)
 		}
-		printOutput(args, outputData)
+		printOutput(outputData)
 	}
 }
 
@@ -129,22 +131,28 @@ func calculateStats(reader io.Reader, filePath *string) {
 	outputData = append(outputData, data)
 }
 
-func printOutput(args Args, outputData []OutputData) {
+// func getMaxWdith()
+
+func printOutput(outputData []OutputData) {
 	width := max(maxLinesWidth, maxWordsWidth, maxCharsWidth, maxBytesWidth)
 
 	for _, data := range outputData {
 		output := make([]string, 0)
 
 		if args.flags["l"] {
+			// width = maxLinesWidth
 			output = append(output, fmt.Sprintf("%*d", width, data.lines))
 		}
 		if args.flags["w"] {
+			// width = maxWordsWidth
 			output = append(output, fmt.Sprintf("%*d", width, data.words))
 		}
 		if args.flags["m"] {
+			// width = maxCharsWidth
 			output = append(output, fmt.Sprintf("%*d", width, data.characters))
 		}
 		if args.flags["c"] {
+			// width = maxBytesWidth
 			output = append(output, fmt.Sprintf("%*d", width, data.bytes))
 		}
 		if flag.NFlag() == 0 {
