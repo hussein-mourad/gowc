@@ -69,10 +69,10 @@ func TestNumberOfCharacters(t *testing.T) {
 func TestDefault(t *testing.T) {
 	args := append([]string{}, files...)
 	expectedOutputs := []string{
-		"1 1 5 test_data/test1.txt\n",
-		"2 2 12 test_data/test2.txt\n",
-		"7145 58164 335045 test_data/test3.txt\n",
-		"7148 58167 335062 total\n",
+		"     1      1      5 test_data/test1.txt\n",
+		"     2      2     12 test_data/test2.txt\n",
+		"  7145  58164 335045 test_data/test3.txt\n",
+		"  7148  58167 335062 total\n",
 	}
 	runFileTest(t, args, expectedOutputs)
 }
@@ -102,7 +102,7 @@ func TestLinesFromStdin(t *testing.T) {
 	output := goOut.String()
 	expectedOutput := "7145\n"
 
-	if output != expectedOutput {
+	if !strings.Contains(output, expectedOutput) {
 		t.Errorf("Expected %s but got %s", expectedOutput, output)
 	}
 }

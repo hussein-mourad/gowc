@@ -19,13 +19,18 @@ type Args struct {
 }
 
 type OutputData struct {
+	file       string
 	lines      int
 	words      int
 	characters int
 	bytes      int
 }
 
+var outputData []OutputData
+
 var total OutputData
+
+var maxLinesWidth, maxWordsWidth, maxCharsWidth, maxBytesWidth int
 
 func main() {
 	printBytes := flag.Bool("c", false, "print the byte counts")
@@ -42,19 +47,25 @@ func main() {
 
 	if len(filesPath) == 0 {
 		filesPath := ""
-		calculateStats(&filesPath, reader, args)
+		calculateStats(&filesPath, reader)
+		printOutput(args, outputData)
 	} else {
 		for _, filePath := range filesPath {
-			calculateStats(&filePath, reader, args)
+			calculateStats(&filePath, reader)
 		}
-		if len(filesPath) > 0 {
-			str := "total"
-			printOutput(&str, args, total)
+
+		if len(filesPath) > 1 {
+			totalArgs := OutputData{file: "total", lines: total.lines, words: total.words, characters: total.characters, bytes: total.bytes}
+			outputData = append(outputData, totalArgs)
 		}
+		printOutput(args, outputData)
 	}
 }
 
-func calculateStats(filePath *string, reader io.Reader, args Args) {
+func calculateStats(filePath *string, reader io.Reader) {
+	var data OutputData
+	var lineBuffer []byte
+
 	if *filePath != "" {
 		f, err := os.Open(*filePath)
 		if err != nil {
@@ -66,10 +77,6 @@ func calculateStats(filePath *string, reader io.Reader, args Args) {
 
 	scanner := bufio.NewScanner(reader)
 	scanner.Split(bufio.ScanBytes)
-
-	var data OutputData
-
-	var lineBuffer []byte
 
 	for scanner.Scan() {
 		byte := scanner.Bytes()[0]
@@ -94,36 +101,48 @@ func calculateStats(filePath *string, reader io.Reader, args Args) {
 		data.words += len(strings.Fields(string(lineBuffer)))
 	}
 
+	// Calculate the total
 	total.lines += data.lines
 	total.words += data.words
 	total.characters += data.characters
 	total.bytes += data.bytes
 
-	printOutput(filePath, args, data)
+	// Calculate Longest width number with help in formatting the output
+	maxLinesWidth = max(maxLinesWidth, len(strconv.Itoa(data.lines)))
+	maxWordsWidth = max(maxWordsWidth, len(strconv.Itoa(data.words)))
+	maxCharsWidth = max(maxCharsWidth, len(strconv.Itoa(data.characters)))
+	maxBytesWidth = max(maxBytesWidth, len(strconv.Itoa(data.bytes)))
+
+	data.file = *filePath
+	outputData = append(outputData, data)
 }
 
-func printOutput(filePath *string, args Args, data OutputData) {
-	output := make([]string, 0)
+func printOutput(args Args, outputData []OutputData) {
+	width := max(maxLinesWidth, maxWordsWidth, maxCharsWidth, maxBytesWidth)
 
-	if args.printLines {
-		output = append(output, strconv.Itoa(data.lines))
+	for _, data := range outputData {
+		output := make([]string, 0)
+
+		if args.printLines {
+			output = append(output, fmt.Sprintf("%*d", width, data.lines))
+		}
+		if args.printWords {
+			output = append(output, fmt.Sprintf("%*d", width, data.words))
+		}
+		if args.printChars {
+			output = append(output, fmt.Sprintf("%*d", width, data.characters))
+		}
+		if args.printBytes {
+			output = append(output, fmt.Sprintf("%*d", width, data.bytes))
+		}
+		if flag.NFlag() == 0 {
+			output = append(output, fmt.Sprintf("%*d", width, data.lines))
+			output = append(output, fmt.Sprintf("%*d", width, data.words))
+			output = append(output, fmt.Sprintf("%*d", width, data.bytes))
+		}
+		if data.file != "" {
+			output = append(output, data.file)
+		}
+		fmt.Println(strings.Join(output, " "))
 	}
-	if args.printWords {
-		output = append(output, strconv.Itoa(data.words))
-	}
-	if args.printChars {
-		output = append(output, strconv.Itoa(data.characters))
-	}
-	if args.printBytes {
-		output = append(output, strconv.Itoa(data.bytes))
-	}
-	if flag.NFlag() == 0 {
-		output = append(output, strconv.Itoa(data.lines))
-		output = append(output, strconv.Itoa(data.words))
-		output = append(output, strconv.Itoa(data.bytes))
-	}
-	if *filePath != "" {
-		output = append(output, *filePath)
-	}
-	fmt.Println(strings.Join(output, " "))
 }
