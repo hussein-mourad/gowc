@@ -108,29 +108,8 @@ func main() {
 	words := 0
 	characters := 0
 	bytes := 0
-
-	// for scanner.Scan() {
-	// 	// byte := scanner.Text()
-	// 	// bytes++
-	// 	// if byte == "\n" {
-	// 	// 	lines++
-	// 	// }
-	// 	//
-	// 	line := scanner.Text()
-	// 	lines++
-	//
-	// 	// Count bytes and characters
-	// 	lineBytes := len(line)
-	// 	lineCharacters := utf8.RuneCountInString(line)
-	//
-	// 	bytes += lineBytes
-	// 	characters += lineCharacters
-	//
-	// 	// Count words
-	// 	words += len(strings.Fields(line))
-	// }
-
 	var lineBuffer []byte
+
 	for scanner.Scan() {
 		byte := scanner.Bytes()[0]
 		bytes++
@@ -147,43 +126,34 @@ func main() {
 		}
 	}
 
-	// // Handle the last line if it does not end with a newline
-	// if len(lineBuffer) > 0 {
-	// 	lineBytes := len(lineBuffer)
-	// 	lineCharacters := utf8.RuneCount(lineBuffer)
-	//
-	// 	bytes += lineBytes
-	// 	characters += lineCharacters
-	// 	words += len(strings.Fields(string(lineBuffer)))
-	// }
+	// handle the last line if it does not end with a newline
+	if len(lineBuffer) > 0 {
+		lineCharacters := utf8.RuneCount(lineBuffer)
+		characters += lineCharacters
+		words += len(strings.Fields(string(lineBuffer)))
+	}
 
 	output := make([]string, 0)
 
 	if *printLines {
 		output = append(output, strconv.Itoa(lines))
 	}
-
 	if *printWords {
 		output = append(output, strconv.Itoa(words))
 	}
-
 	if *printChars {
 		output = append(output, strconv.Itoa(characters))
 	}
-
 	if *printBytes {
 		output = append(output, strconv.Itoa(bytes))
 	}
-
 	if flag.NFlag() == 0 {
 		output = append(output, strconv.Itoa(lines))
 		output = append(output, strconv.Itoa(words))
 		output = append(output, strconv.Itoa(bytes))
 	}
-
 	if filename != "" {
 		output = append(output, filename)
 	}
-
 	fmt.Println(strings.Join(output, " "))
 }
